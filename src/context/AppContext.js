@@ -1,12 +1,86 @@
-// import React, { createContext, useState } from 'react';
+import React, { createContext, useEffect, useState } from "react";
+import { getProjects, getConfig } from "../api/api";
 
-// const AppContext = createContext({ api, state, content });
+const AppContext = createContext();
 
+export const AppContextProvider = (props) => {
+  const [projects, setProjects] = useState([]);
+  const [projectRoutes, setProjectRoutes] = useState([]);
+  const [config, setConfig] = useState();
 
-// export const AppContextProvider = props => {
+  const invokeGetProjects = async () => {
+    await getProjects()
+      .then((res) => {
+        // console.log(res);
+        let proj = res.data.data;
+        let temp = [];
+        let tempRoutes = [];
+        proj.forEach((el) => {
+          temp.push(el.attributes);
+          tempRoutes.push({
+            routeName: el.attributes.name,
+            data: el.attributes,
+          });
+        });
+        setProjects([...temp]);
+        setProjectRoutes([...tempRoutes]);
+      })
+      .catch(() => {
+        console.log("couldnt fetch projects");
+      });
+  };
+  const invokeGetConfig = async () => {
+    await getConfig()
+      .then((res) => {
+        console.log(res);
+        // let conf = res.data.data
+        // let temp = [];
+        // proj.forEach((el) => temp.push(el.attributes));
+        // setConfig([...conf]);
+      })
+      .catch(() => {
+        // console.log("couldnt fetch config");
+      });
+  };
 
-//     return <AppContext.Provider value={{ api, state, content }}>{children}</AppContext.Provider>;
+  // const invokeGetMedia = async () => {
+  //     await getMedia().then((res) => {
+  //         let med = res.data
+  //         setMedia([...med]);
+  //     }).catch(() => {
+  //         console.log('couldnt fetch media');
+  //     });
+  // };
 
-// }
+  // const invokeGetFolders = async () => {
+  //     await getFolders().then((res) => {
+  //         console.log(res);
+  //         // let fold = res.data
+  //         // setFolders([...fold]);
+  //     }).catch(() => {
+  //         console.log('couldnt fetch folders');
+  //     });
+  // };
 
-// export default AppContext;
+  const invokeStart = () => {
+    invokeGetProjects();
+    invokeGetConfig();
+    // invokeGetMedia();
+    // invokeGetFolders();
+  };
+
+  const state = {
+    projects: projects,
+    projectRoutes: projectRoutes,
+  };
+  const api = {
+    invokeStart: invokeStart,
+  };
+  return (
+    <AppContext.Provider value={{ state, api }}>
+      {props.children}
+    </AppContext.Provider>
+  );
+};
+
+export default AppContext;

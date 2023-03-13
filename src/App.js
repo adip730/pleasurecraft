@@ -1,13 +1,13 @@
-import NavBar from './components/NavBar';
-import HomePage from './components/HomePage';
+import { AppContextProvider } from './context/AppContext';
+import React from 'react';
+import Main from './components/Main';
 import './App.css';
 
 function App() {
   return (
-    <div className="App">
-      {/* <NavBar /> */}
-      <HomePage />
-    </div>
+    <AppContextProvider>
+        <Main />
+    </AppContextProvider>
   );
 }
 

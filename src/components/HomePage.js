@@ -1,60 +1,82 @@
-import React, { useState, useContext } from 'react';
-import makeStyles from '@mui/styles/makeStyles';
-
-import ProjectPage from './ProjectPage';
-
+import React, { useState, useContext, useEffect, useRef } from "react";
+import makeStyles from "@mui/styles/makeStyles";
+import AppContext from "../context/AppContext";
+import Preview from "./Preview";
+import HomeLogo from "../threejs/HomeLogo";
 
 const useStyles = makeStyles(() => ({
-    root: {
-        display: 'flex',
-        flexDirection: 'column',
-        width: '100vw',
-        // alignItems: 'center',
-      },
-      scrollView: {
-        width: '100%',
-        height: '100vh',
-        scrollSnapType: 'y mandatory',
-        overflowY: 'scroll',
-      },
-    viewContainer: {
-        position: 'relative',
-        height: '100vh',
-        width: '100vw',
-        border: '3px solid green',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#c9c9c9',
-        padding: 0,
-        scrollSnapAlign: 'start',
-    }
+  root: {
+    display: "flex",
+    flexDirection: "column",
+    width: "100%",
+    justifyContent: "center",
+    // marginLeft: 'auto',
+    // marginRightt: 'auto',
+  },
+  scrollView: {
+    width: "100%",
+    height: "100dvh",
+    scrollSnapType: "y mandatory",
+    overflowY: "scroll",
+  },
+  viewContainer: {
+    position: "relative",
+    height: "100vh",
+    width: "100%",
+    //border: '3px solid green',
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    // backgroundColor: '#EDEEF0',
+    padding: 0,
+    scrollSnapAlign: "start",
+  },
 }));
 
+export const HomePage = (props) => {
+  const { state, api } = useContext(AppContext);
+  const { projects } = state;
+  const { invokeStart } = api;
+
+  useEffect(() => {
+    invokeStart();
+  }, []);
+
+  const classes = useStyles();
+  const viewRef = useRef();
+
+  const [scrollPos, setScrollPos] = useState(0);
+
+  useEffect(() => {
+      var view = document.getElementById('scrollview');
+      view.addEventListener('scroll', handleScroll);
+
+    //   const handleScroll  = () => {
+    //     console.log(view.scrollY)
+    // }
+  }, [])
 
 
-export const HomePage = props => {
-
-    const classes = useStyles();
-
-    return (
-        <div className={classes.root}>
-            <div className={classes.scrollView}>
-
-            <div className={classes.viewContainer}>
-                <p>
-                    Spinning Logo goes here
-                </p>
-            </div>
-            <div className={classes.viewContainer}>
-                <ProjectPage viewMode={'landing'} name={'your project 1'}/>
-            </div>
-            <div className={classes.viewContainer}>
-                <ProjectPage viewMode={'landing'} name={'your project 2'}/>
-            </div>
-            </div>
+  const handleScroll  = () => {
+      let scrollTop = viewRef.current.scrollTop;
+      setScrollPos(scrollTop);
+    // console.log(scrollTop);
+}
+  return (
+    <div className={classes.root}>
+      <div className={classes.scrollView} ref={viewRef} onScroll = {handleScroll} id='scrollview'>
+        <div className={classes.viewContainer}>
+          <p>Spinning Logo goes here</p>
+          {/* <HomeLogo /> */}
         </div>
-    )
+        {projects.map((proj, ind) => (
+          <div className={classes.viewContainer}>
+            <Preview data={proj} index={ind} scrollPos={scrollPos}/>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 };
 
 export default HomePage;
