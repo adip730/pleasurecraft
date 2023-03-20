@@ -1,52 +1,51 @@
-import React from "react";
+import React, { useContext } from "react";
 import makeStyles from "@mui/styles/makeStyles";
-import AppBar from "@mui/material/AppBar";
-import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import { useNavigate } from "react-router-dom";
+import AppContext from "../context/AppContext";
 
 const useStyles = makeStyles(() => ({
   navBar: {
     minWidth: "100%",
     background: "#FFFFFF",
 
-    width: '100%',
+    width: "100%",
     position: "fixed",
     top: 0,
     right: 0,
     left: 0,
     height: "60px",
     zIndex: 3,
-    opacity: .5,
+    opacity: 0.5,
     marginBottom: 0,
-    display: 'flex',
-    flexDirection: 'row',
+    display: "flex",
+    flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: '0px 24px',
-    boxSizing: 'border-box',
-
+    padding: "0px 24px",
+    boxSizing: "border-box",
   },
   toolbar: {
-    display: 'flex',
-    minWidth: '60%',
-    flexDirection: 'row',
+    display: "flex",
+    minWidth: "60%",
+    flexDirection: "row",
     background: "#FFFFFF",
     justifyContent: "space-between",
     alignItems: "center",
-    height: '100%',
+    height: "100%",
     zIndex: 2,
   },
 
   menuButton: {
-    fontFamily: 'Square721',
+    fontFamily: "Square721",
     cursor: "pointer",
+    textAlign: "left",
   },
   barText: {
-    fontFamily: 'Square721',
+    fontFamily: "Square721",
     fontSize: "1.5em",
-    opacity: '1 !important',
+    opacity: "1 !important",
     color: "#000000",
   },
 }));
@@ -54,29 +53,46 @@ const useStyles = makeStyles(() => ({
 export const NavBar = (props) => {
   const classes = useStyles();
   let navigate = useNavigate();
+  const { state } = useContext(AppContext);
+  const { showNav } = state;
 
   return (
-    <div className={classes.navBar}>
-      <div className={classes.toolbar}>
-        <Button className={classes.menuButton} onClick={(e) => navigate("/")}>
-          <Typography style={{fontFamily: 'Square721'}}  className={classes.barText}>Pleasure Craft</Typography>
-        </Button>
-        <Button
-          className={classes.menuButton}
-          onClick={(e) => navigate("/info")}
-        >
-          <Typography style={{fontFamily: 'Square721'}}  className={classes.barText}>
-          Info
-          </Typography>
-        </Button>
-        <Button
-          className={classes.menuButton}
-          onClick={(e) => navigate("/index")}
-        >
-          <Typography style={{fontFamily: 'Square721'}} className={classes.barText}>Index</Typography>
-        </Button>
+    showNav && (
+      <div className={classes.navBar}>
+        <div className={classes.toolbar}>
+          <Button className={classes.menuButton} onClick={(e) => navigate("/")}>
+            <Typography
+              style={{ fontFamily: "Square721" }}
+              className={classes.barText}
+            >
+              Pleasure Craft
+            </Typography>
+          </Button>
+          <Button
+            className={classes.menuButton}
+            onClick={(e) => navigate("/info")}
+          >
+            <Typography
+              style={{ fontFamily: "Square721" }}
+              className={classes.barText}
+            >
+              Info
+            </Typography>
+          </Button>
+          <Button
+            className={classes.menuButton}
+            onClick={(e) => navigate("/index")}
+          >
+            <Typography
+              style={{ fontFamily: "Square721" }}
+              className={classes.barText}
+            >
+              Index
+            </Typography>
+          </Button>
+        </div>
       </div>
-    </div>
+    )
     /* <Grid
         container
         direction="row"

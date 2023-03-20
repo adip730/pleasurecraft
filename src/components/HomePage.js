@@ -2,6 +2,7 @@ import React, { useState, useContext, useEffect, useRef } from "react";
 import makeStyles from "@mui/styles/makeStyles";
 import AppContext from "../context/AppContext";
 import Preview from "./Preview";
+import PreviewPage from "./PreviewPage";
 import HomeLogo from "../threejs/HomeLogo";
 
 const useStyles = makeStyles(() => ({

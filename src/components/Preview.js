@@ -10,9 +10,14 @@ const useStyles = makeStyles(() => ({
   root: {
     display: "flex",
     flexDirection: "column",
-    height: "100%",
+    height: "100vh",
     width: "100%",
     alignItems: "center",
+    justifyContent: 'center',
+    padding: "120px 64px 120px 64px",
+
+    // marginTop: 'auto',
+    // marginBottom: 'auto'
     // position: "sticky",
     // top: 120,
     // border: "1px solid green",
@@ -55,6 +60,10 @@ const useStyles = makeStyles(() => ({
     // border: "2px solid blue",
     // borderRadius: "20px",
     // marginBottom: "8px",
+    // objectFit: 'cover',
+    // paddingTop: '56.25%',
+    // boxSizing: "border-box",
+    aspectRatio: 16 / 9,
     borderRadius: "40px",
     overflow: "hidden",
     position: "relative",
@@ -62,18 +71,21 @@ const useStyles = makeStyles(() => ({
     justifyContent: "center",
     transition: "width .75s",
     cursor: "pointer",
+    // flexGrow: 1,
   },
   window: {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
+    // justifyContent: 'center',
     // border: "2px solid green",
     position: "sticky",
-    top: 120,
-    bottom: 120,
+    top: '13.33%',
+    bottom: '13.33%',
     height: "65%",
     width: "85%",
     // maxWidth: "85%",
+    overflow: 'hidden',
   },
   subtitle: {
     marginTop: "8px",
@@ -89,12 +101,6 @@ const useStyles = makeStyles(() => ({
     alignItems: "center",
     justifyContent: "space-between",
     transition: "display 1s",
-  },
-  featuredAsset: {
-    maxHeight: "100%",
-    maxWidth: "100%",
-    // borderRadius: '20px',
-    // overflow: 'hidden',
   },
   subtitleSmall: {
     width: "85%",
@@ -167,30 +173,27 @@ export const Preview = (props) => {
   //   }, [showSubtitle]);
 
   useEffect(() => {
-      if (largeScreen) {
-
-          let element = document.getElementById(`featured-${name}`);
-          if (element) {
-              if (showSubtitle) {
-        element.style.transition = "width .75s, height .5s";
-        element.style.height = "calc(100% - 32px)";
-        setTimeout(myTimer, 2000);
-        function myTimer() {
-          if (showSubtitle) {
-            element.style.width = "100%";
-          }
-        }
-    } else {
-        // element.style.transition = "width 1s";
-        element.style.width = "85%";
-        element.style.height = "100%";
-    }
-}
-} else {
-          let element = document.getElementById(`featured-${name}`);
+    if (largeScreen) {
+      let element = document.getElementById(`featured-${name}`);
       if (element) {
         if (showSubtitle) {
-        element.style.transition = "width .75s, height .5s";
+          element.style.transition = "width .75s, height .5s";
+          element.style.height = "calc(100% - 32px)";
+          setTimeout(myTimer, 2000);
+          function myTimer() {
+            element.style.width = "100%";
+          }
+        } else {
+          // element.style.transition = "width 1s";
+          element.style.width = "85%";
+          element.style.height = "100%";
+        }
+      }
+    } else {
+      let element = document.getElementById(`featured-${name}`);
+      if (element) {
+        if (showSubtitle) {
+          element.style.transition = "width .75s, height .5s";
           element.style.width = "100%";
           element.style.height = "100%";
           element.style.borderRadius = "0px";
@@ -201,33 +204,33 @@ export const Preview = (props) => {
           element.style.borderRadius = "20px";
         }
       }
-}
-  }, [showSubtitle]);
+    }
+  }, [showSubtitle, largeScreen]);
 
   //   const [element, setElement] = useState(null);
 
   useEffect(() => {
-      if (largeScreen) {
-
-    console.log(scrollPos);
-    let element = document.getElementById(`featured-${name}`);
-    let vwh = window.innerHeight;
-    let subtract = (scrollPos - (1 + index) * vwh).toFixed(0);
-    let scale = 100 - ((subtract * 100) / 400).toFixed(0);
-    let scaleReverse = 100 - ((subtract * -100) / 400).toFixed(0);
-    console.log(subtract);
-    if (subtract < 400 && subtract > 0) {
-      console.log(`subtracting ${subtract} pixels`);
-      // element.style.height = `calc(65% - ${subtract}px)`;
-      element.style.transformOrigin = "top";
-      element.style.transform = `scaleY(${scale}%)`;
-      console.log(`scale(${scale}%)`);
+    if (largeScreen) {
+      console.log(scrollPos);
+      let element = document.getElementById(`featured-${name}`);
+      let vwh = window.innerHeight;
+      let factor = window.innerHeight * .65;
+      let subtract = (scrollPos - (1 + index) * vwh).toFixed(0);
+      let scale = 100 - ((subtract * 100) / factor).toFixed(0);
+      let scaleReverse = 100 - ((subtract * -100) / 400).toFixed(0);
+      console.log(subtract);
+      if (subtract < factor && subtract > 0) {
+        console.log(`subtracting ${subtract} pixels`);
+        // element.style.height = `calc(65% - ${subtract}px)`;
+        element.style.transformOrigin = "top";
+        element.style.transform = `scaleY(${scale}%)`;
+        console.log(`scale(${scale}%)`);
+      }
+      if (subtract > (-1 * factor) && subtract < 0) {
+        element.style.transformOrigin = "bottom";
+        element.style.transform = `scaleY(${scaleReverse}%)`;
+      }
     }
-    if (subtract > -400 && subtract < 0) {
-      element.style.transformOrigin = "bottom";
-      element.style.transform = `scaleY(${scaleReverse}%)`;
-    }
-}
 
     // let el = document.getElementById(`featured-instagram`);
     // let rect = el.getBoundingClientRect();
@@ -269,10 +272,6 @@ export const Preview = (props) => {
               // ref={viewRef}
               id={`featured-${name}`}
               className={classes.wrapper}
-              style={{
-                boxSizing: "border-box",
-                aspectRatio: 16 / 9,
-              }}
               onMouseEnter={() => setShowSubtitle(true)}
               onMouseLeave={() => setShowSubtitle(false)}
               onClick={switchView}
@@ -287,9 +286,10 @@ export const Preview = (props) => {
                   position: "absolute",
                   top: 0,
                   left: 0,
-                  right: 0,
-                  bottom: 0,
-                  margin: "auto",
+                  alignContent: 'center',
+                //   right: 0,
+                //   bottom: 0,
+                //   margin: "auto",
                 }}
                 url={`http://localhost:1337${featuredUrl}`}
                 width="100%"
@@ -366,13 +366,15 @@ export const Preview = (props) => {
           </div>
           {/* {showSubtitle && ( */}
           <div className={classes.subtitleSmall}>
-            <Typography style={{ fontFamily: "Square721", fontSize: '.8rem' }}>
+            <Typography style={{ fontFamily: "Square721", fontSize: ".8rem" }}>
               {projectName}
             </Typography>
-            <Typography style={{ fontFamily: "Square721", fontSize: '.8rem' }}>
+            <Typography style={{ fontFamily: "Square721", fontSize: ".8rem" }}>
               {client}
             </Typography>
-            <Typography style={{ fontFamily: "Square721", fontSize: '.8rem' }}>{code}</Typography>
+            <Typography style={{ fontFamily: "Square721", fontSize: ".8rem" }}>
+              {code}
+            </Typography>
           </div>
           {/* )} */}
         </div>
