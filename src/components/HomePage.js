@@ -67,8 +67,8 @@ export const HomePage = (props) => {
     <div className={classes.root}>
       <div className={classes.scrollView} ref={viewRef} onScroll = {handleScroll} id='scrollview'>
         <div className={classes.viewContainer}>
-          {/* <p>Spinning Logo goes here</p> */}
-          <HomeLogo />
+          <p>Spinning Logo goes here</p>
+          {/* <HomeLogo /> */}
         </div>
         {projects.map((proj, ind) => (
           <div className={classes.viewContainer}>

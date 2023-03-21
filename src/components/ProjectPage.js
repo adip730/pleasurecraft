@@ -141,7 +141,7 @@ export const ProjectPage = (props) => {
   const [creditsArr, setCreditsArr] = useState([]);
 
   const [expanded, setExpanded] = useState(false);
-  const [playing, setPlaying] = useState(true);
+  const [playing, setPlaying] = useState(false);
   const [showControls, setShowControls] = useState(false);
 
   useEffect(() => {
