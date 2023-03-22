@@ -113,6 +113,8 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
+const endpoint = process.env.REACT_APP_STRAPIURL;
+
 export const ProjectPage = (props) => {
   const { viewMode, data, media } = props;
   const classes = useStyles();
@@ -191,7 +193,7 @@ export const ProjectPage = (props) => {
         player.style.borderRadius = 0;
         player.style.paddingTop = "56.25%";
         player.style.height = "auto";
-        player.style.width = "100";
+        player.style.width = "100%";
         container.style.height = "100vh";
         container.style.width = "100vw";
         container.style.position = "absolute";
@@ -254,7 +256,7 @@ export const ProjectPage = (props) => {
               //   bottom: 0,
               //   margin: "auto",
             }}
-            url={`http://localhost:1337${featuredUrl}`}
+            url={`http://${endpoint}${featuredUrl}`}
             // width="100%"
             // height='auto'
             width={expanded ? "auto" : "100%"}

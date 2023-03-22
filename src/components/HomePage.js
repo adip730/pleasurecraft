@@ -57,12 +57,19 @@ export const HomePage = (props) => {
     // }
   }, [])
 
+  let observerOptions = {
+    root: null,
+    rootMargin: "0px",
+    threshold: 1.0
+  };
+  
 
   const handleScroll  = () => {
       let scrollTop = viewRef.current.scrollTop;
       setScrollPos(scrollTop);
     // console.log(scrollTop);
 }
+
   return (
     <div className={classes.root}>
       <div className={classes.scrollView} ref={viewRef} onScroll = {handleScroll} id='scrollview'>
@@ -72,7 +79,7 @@ export const HomePage = (props) => {
         </div>
         {projects.map((proj, ind) => (
           <div className={classes.viewContainer}>
-            <Preview data={proj} index={ind} scrollPos={scrollPos}/>
+            <Preview options={observerOptions} data={proj} index={ind} scrollPos={scrollPos}/>
           </div>
         ))}
       </div>

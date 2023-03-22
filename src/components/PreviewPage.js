@@ -186,7 +186,8 @@ export const Preview = (props) => {
           }
         } else {
           // element.style.transition = "width 1s";
-          element.style.width = "85%";
+          element.style.width = "";
+          element.style.maxWidth = "85%";
           element.style.height = "100%";
         }
       }

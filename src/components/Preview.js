@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import ReactPlayer from "react-player/file";
 import makeStyles from "@mui/styles/makeStyles";
 import Typography from "@mui/material/Typography";
 import useMediaQuery from "@mui/material/useMediaQuery";
-import Grid from "@mui/material/Grid";
+import AppContext from "../context/AppContext";
 import { useNavigate } from "react-router-dom";
 
 const useStyles = makeStyles(() => ({
@@ -13,56 +13,13 @@ const useStyles = makeStyles(() => ({
     height: "100vh",
     width: "100%",
     alignItems: "center",
-    justifyContent: 'center',
-    padding: "120px 64px 120px 64px",
-
-    // marginTop: 'auto',
-    // marginBottom: 'auto'
-    // position: "sticky",
-    // top: 120,
-    // border: "1px solid green",
-    // padding: "20% 15%",
-    // boxSizing: 'border-box',
-    // paddingTop: '120px',
-    // paddingBottom: '120px',
-    // paddingBottom: '15%'
-  },
-  smallRoot: {
-    display: "flex",
-    flexDirection: "column",
-    height: "100%",
-    width: "100%",
-    alignItems: "center",
-  },
-  wrapped: {
-    height: "75%",
-    width: "85%",
-    position: "sticky",
-    top: 120,
-    // height: "auto",
-    // width: "auto",
-    // flexGrow: 1,
-    // borderRadius: "20px",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "flex-end",
+    justifyContent: "center",
+    boxSizing: "border-box",
+    padding: useMediaQuery("(min-width: 600px)") ? "120px 64px" : "0px",
   },
   wrapper: {
-    // height: "auto",
-    // width: "auto",
-    // height: "100%",
-    // width: "85%",
-    // marginTop: "120px",
-    // marginRight: 'auto',
-    // marginLeft: 'auto',
-
-    // border: "2px solid blue",
-    // borderRadius: "20px",
-    // marginBottom: "8px",
-    // objectFit: 'cover',
-    // paddingTop: '56.25%',
-    // boxSizing: "border-box",
+    height: "100%",
+    minWidth: "100%",
     aspectRatio: 16 / 9,
     borderRadius: "40px",
     overflow: "hidden",
@@ -71,82 +28,72 @@ const useStyles = makeStyles(() => ({
     justifyContent: "center",
     transition: "width .75s",
     cursor: "pointer",
-    // flexGrow: 1,
   },
   window: {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    // justifyContent: 'center',
-    // border: "2px solid green",
+    transition: "all .5s",
+    justifyContent: useMediaQuery("(min-width: 600px)") ? "" : "flex-start",
+    paddingTop: useMediaQuery("(min-width: 600px)") ? "0" : "80px",
     position: "sticky",
-    top: '13.33%',
-    bottom: '13.33%',
-    height: "65%",
+    top: "13.33%",
+    bottom: "13.33%",
+    // height: useMediaQuery("(min-width:600px)") ? "65%" : '100%',
+    height: "100%",
+    width: "100%",
+    // width: useMediaQuery("(min-width:600px)") ? "85%" : '100%',
+    overflow: "hidden",
+  },
+  cont: {
+    height: useMediaQuery("(min-width:600px)") ? "100%" : "75%",
     width: "85%",
-    // maxWidth: "85%",
-    overflow: 'hidden',
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    overflow: "hidden",
+    borderRadius: "40px",
   },
   subtitle: {
     marginTop: "8px",
     position: "absolute",
-    bottom: 0,
+    bottom: useMediaQuery("(min-width:600px)") ? 0 : 80,
     flexGrow: 1,
     width: "85%",
     maxWidth: "85%",
-    // marginRight: "auto",
-    // marginLeft: "auto",
     display: "flex",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     transition: "display 1s",
   },
-  subtitleSmall: {
-    width: "85%",
-    display: "flex",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    position: "absolute",
-    left: "7.5%",
-    right: "7.5%",
-    bottom: "7.5%",
-  },
 }));
 
+const endpoint = process.env.REACT_APP_STRAPIURL;
+
 export const Preview = (props) => {
-  const { data, scrollPos, index } = props;
+  const { data, scrollPos, index, options } = props;
   const classes = useStyles();
   const navigate = useNavigate();
+  const { api } = useContext(AppContext);
+  const { setShowNav } = api;
 
-  console.log(index);
   const [featuredUrl, setFeaturedUrl] = useState("");
-  const [galleryUrls, setGalleryUrls] = useState([]);
-  const [imageUrls, setImageUrls] = useState([]);
-  const [videoUrls, setVideoUrls] = useState([]);
-
-  const viewRef = useRef(null);
 
   const {
     projectName,
     name,
     role,
     client,
-    writeup,
-    roles,
     director,
     code,
     featured,
-    gallery,
-    description,
   } = data;
 
   const [showSubtitle, setShowSubtitle] = useState(false);
 
   useEffect(() => {
     let featUrl = featured.data.attributes.url;
-    let imgUrls = [];
     setFeaturedUrl(featUrl);
   }, []);
 
@@ -156,120 +103,90 @@ export const Preview = (props) => {
 
   const largeScreen = useMediaQuery("(min-width:600px)");
 
-  //   useEffect(() => {
-  //     let element = document.getElementById(`videoFrame-${name}`);
-  //     if (element) {
-  //       if (showSubtitle) {
-  //         element.style.width = "100%";
-  //         element.style.height = "100%";
-  //         element.style.borderRadius = "0px";
-  //         // }
-  //       } else {
-  //         element.style.width = "85%";
-  //         element.style.height = "70%";
-  //         element.style.borderRadius = "20px";
-  //       }
-  //     }
-  //   }, [showSubtitle]);
+  useEffect(() => {
+    let observer = new IntersectionObserver(doGrow, options);
+    let target = document.getElementById(`window-${name}`);
+    if (!largeScreen) {
+      observer.observe(target);
+    }
+    return () => {
+      observer.unobserve(target);
+    }
+  }, [])
+
+  function growTimer(container, wind) {
+    wind.style.paddingTop = "0px";
+    container.style.transition = "width .75s, height .5s";
+    container.style.width = "100%";
+    container.style.height = "100%";
+    container.style.borderRadius = "0px";
+    setShowNav(false);
+  }
+
+  function doGrow(entry) {
+    let container = document.getElementById(`container-${name}`);
+    let wind = document.getElementById(`window-${name}`);
+      if (entry[0].isIntersecting) {
+        let container = document.getElementById(`container-${name}`);
+        let wind = document.getElementById(`window-${name}`);
+        this.grow = setTimeout(() => growTimer(container, wind), 2000)
+      } else {
+        clearTimeout(this.grow);
+        wind.style.paddingTop = "80px";
+        container.style.width = "85%";
+        container.style.height = "75%";
+        container.style.borderRadius = "40px";
+        setShowNav(true);
+      }
+  }
+
+  function growTimerLarge(container) {
+    container.style.width = "100%";
+  }
 
   useEffect(() => {
     if (largeScreen) {
+      let container = document.getElementById(`container-${name}`);
       let element = document.getElementById(`featured-${name}`);
       if (element) {
         if (showSubtitle) {
-          element.style.transition = "width .75s, height .5s";
-          element.style.height = "calc(100% - 32px)";
-          setTimeout(myTimer, 2000);
-          function myTimer() {
-            element.style.width = "100%";
-          }
+          container.style.transition = "width .75s, height .5s";
+          container.style.height = "calc(100% - 32px)";
+          setTimeout(() => growTimerLarge(container), 2000);
+          
         } else {
-          // element.style.transition = "width 1s";
-          element.style.width = "85%";
-          element.style.height = "100%";
+          container.style.width = "85%";
+          container.style.height = "100%";
         }
       }
-    } else {
-      let element = document.getElementById(`featured-${name}`);
-      if (element) {
-        if (showSubtitle) {
-          element.style.transition = "width .75s, height .5s";
-          element.style.width = "100%";
-          element.style.height = "100%";
-          element.style.borderRadius = "0px";
-          // }
-        } else {
-          element.style.width = "85%";
-          element.style.height = "70%";
-          element.style.borderRadius = "20px";
-        }
-      }
-    }
+    } 
   }, [showSubtitle, largeScreen]);
 
-  //   const [element, setElement] = useState(null);
 
   useEffect(() => {
     if (largeScreen) {
-      console.log(scrollPos);
-      let element = document.getElementById(`featured-${name}`);
+      let container = document.getElementById(`container-${name}`);
       let vwh = window.innerHeight;
-      let factor = window.innerHeight * .65;
+      let factor = window.innerHeight * 0.65;
       let subtract = (scrollPos - (1 + index) * vwh).toFixed(0);
       let scale = 100 - ((subtract * 100) / factor).toFixed(0);
       let scaleReverse = 100 - ((subtract * -100) / 400).toFixed(0);
-      console.log(subtract);
       if (subtract < factor && subtract > 0) {
-        console.log(`subtracting ${subtract} pixels`);
-        // element.style.height = `calc(65% - ${subtract}px)`;
-        element.style.transformOrigin = "top";
-        element.style.transform = `scaleY(${scale}%)`;
-        console.log(`scale(${scale}%)`);
+        container.style.transformOrigin = "top";
+        container.style.transform = `scaleY(${scale}%)`;
       }
-      if (subtract > (-1 * factor) && subtract < 0) {
-        element.style.transformOrigin = "bottom";
-        element.style.transform = `scaleY(${scaleReverse}%)`;
+      if (subtract > -1 * factor && subtract < 0) {
+        container.style.transformOrigin = "bottom";
+        container.style.transform = `scaleY(${scaleReverse}%)`;
       }
     }
-
-    // let el = document.getElementById(`featured-instagram`);
-    // let rect = el.getBoundingClientRect();
-    // let top = rect.top;
-    // let bot = rect.bottom;
-    // console.log('scrollPos: ', scrollPos)
-    // console.log('top: ', top);
-    // console.log('bottom: ', bot);
-    // if (top < 120 && bot > 120) {
-    //     // el.style.position = 'absolute';
-    //     // el.style.top = 120;
-    //     // el.style.left = 200;
-    //     let height = (bot-120)*55/396;
-    //     console.log(height)
-    //     el.style.height = `${height}%`;
-    // }
   }, [scrollPos]);
 
-  //   var element = document.getElementById(`featured-instagram`) ? document.getElementById(`featured-instagram`) : '';
-  //   let topPos = 'not found';
-  //   topPos = element != '' ? element.getBoundingClientRect().bottom: 'not found';
-  //   var leftPos = element != '' ? element.getBoundingClientRect().left: 'not found';
-
-  //   function handleScroll () {
-  //       console.log(window.scrollY)
-  //       console.log(topPos);
-  //   }
-
-  //   useEffect(() => {
-  //     console.log(topPos);
-  //   }, [topPos])
-
   return (
-    <>
-      {largeScreen ? (
-        <div className={classes.root}>
-          <div className={classes.window}>
+      <div className={classes.root}>
+        <div className={classes.window} id={`window-${name}`}>
+          <div className={classes.cont} id={`container-${name}`}>
             <div
-              // ref={viewRef}
               id={`featured-${name}`}
               className={classes.wrapper}
               onMouseEnter={() => setShowSubtitle(true)}
@@ -286,12 +203,9 @@ export const Preview = (props) => {
                   position: "absolute",
                   top: 0,
                   left: 0,
-                  alignContent: 'center',
-                //   right: 0,
-                //   bottom: 0,
-                //   margin: "auto",
+                  alignContent: "center",
                 }}
-                url={`http://localhost:1337${featuredUrl}`}
+                url={`http://${endpoint}${featuredUrl}`}
                 width="100%"
                 height="auto"
                 playing
@@ -300,86 +214,28 @@ export const Preview = (props) => {
                 fluid={false}
               />
             </div>
-            {showSubtitle && (
-              <div className={classes.subtitle}>
-                <Typography
-                  style={{ fontFamily: "Square721", fontSize: "1rem" }}
-                >
-                  {projectName}
-                </Typography>
-                <Typography style={{ fontFamily: "Square721" }}>
-                  {role}
-                </Typography>
-                <Typography style={{ fontFamily: "Square721" }}>
-                  {client}
-                </Typography>
-                <Typography style={{ fontFamily: "Square721" }}>
-                  {director}
-                </Typography>
-                <Typography style={{ fontFamily: "Square721" }}>
-                  {code}
-                </Typography>
-              </div>
-            )}
           </div>
+          {(showSubtitle || !largeScreen) && (
+            <div className={classes.subtitle}>
+              <Typography style={{ fontFamily: "Square721", fontSize: "16px" }}>
+                {client}
+              </Typography>
+              {largeScreen && (<Typography style={{ fontFamily: "Square721", fontSize: "16px" }}>
+                {projectName}
+              </Typography>)}
+              <Typography style={{ fontFamily: "Square721", fontSize: "16px" }}>
+                {role}
+              </Typography>
+              {/* <Typography style={{ fontFamily: "Square721", fontSize: "16px" }}>
+                {director}
+              </Typography> */}
+              <Typography style={{ fontFamily: "Square721", fontSize: "16px" }}>
+                {code}
+              </Typography>
+            </div>
+          )}
         </div>
-      ) : (
-        <div className={classes.smallRoot}>
-          <div
-            // ref={viewRef}
-            id={`featured-${name}`}
-            className={classes.wrapped}
-            style={{
-              boxSizing: "border-box",
-              //   position: 'relative'
-              //   aspectRatio: 16 / 9,
-            }}
-            onMouseEnter={() => setShowSubtitle(true)}
-            onMouseLeave={() => setShowSubtitle(false)}
-            onClick={switchView}
-          >
-            <ReactPlayer
-              id={`videoFrame-${name}`}
-              style={{
-                maxHeight: "100%",
-                maxWidth: "100%",
-                borderRadius: "20px",
-                overflow: "hidden",
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                // transform: 'translate(-50%, -50%)',
-                margin: "auto",
-                alignContent: "center",
-                transition: "width .5s, height 1s",
-              }}
-              url={`http://localhost:1337${featuredUrl}`}
-              width="auto"
-              height="auto"
-              playing
-              loop
-              muted
-              fluid={false}
-            />
-          </div>
-          {/* {showSubtitle && ( */}
-          <div className={classes.subtitleSmall}>
-            <Typography style={{ fontFamily: "Square721", fontSize: ".8rem" }}>
-              {projectName}
-            </Typography>
-            <Typography style={{ fontFamily: "Square721", fontSize: ".8rem" }}>
-              {client}
-            </Typography>
-            <Typography style={{ fontFamily: "Square721", fontSize: ".8rem" }}>
-              {code}
-            </Typography>
-          </div>
-          {/* )} */}
-        </div>
-      )}
-    </>
+      </div>
   );
 };
 

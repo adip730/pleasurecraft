@@ -25,6 +25,8 @@ const useStyles = makeStyles(() => ({
     alignItems: "center",
     padding: "0px 24px",
     boxSizing: "border-box",
+    transition: 'all .25s ease-in-out',
+    transformOrigin: 'top',
   },
   toolbar: {
     display: "flex",
@@ -57,8 +59,10 @@ export const NavBar = (props) => {
   const { showNav } = state;
 
   return (
-    showNav && (
-      <div className={classes.navBar}>
+    // showNav && (
+      <div className={classes.navBar} style={{
+        transform: showNav ? 'scaleY(1)' : 'scaleY(0)'
+      }}>
         <div className={classes.toolbar}>
           <Button className={classes.menuButton} onClick={(e) => navigate("/")}>
             <Typography
@@ -92,7 +96,7 @@ export const NavBar = (props) => {
           </Button>
         </div>
       </div>
-    )
+    // )
     /* <Grid
         container
         direction="row"

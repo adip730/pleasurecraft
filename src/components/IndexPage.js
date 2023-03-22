@@ -73,6 +73,7 @@ const useStyles = makeStyles(() => ({
     }
 }));
 
+const endpoint = process.env.REACT_APP_STRAPIURL;
 
 export const IndexPage = props => {
 
@@ -88,7 +89,7 @@ export const IndexPage = props => {
     const [hover, setHover] = useState('');
     // const featuredUrl = projects.some(proj => proj.projectName == hover) ? projects[projects.indexOf(proj => proj.projectName == hover)]?.featured.data.attributes.url : '';
     const [featuredUrl, setFeaturedUrl] = useState('');
-    console.log(featuredUrl);
+    
     useEffect(() => {
         if (hover !== '') {
             if (projects.some(proj => proj.projectName === hover)){
@@ -133,7 +134,7 @@ export const IndexPage = props => {
                         <div className={classes.viewWindow}>
                             <ReactPlayer
                             style={{ maxHeight: '100%', maxWidth: '100%', borderRadius: '20px' }}
-                            url={`http://localhost:1337${featuredUrl}`}
+                            url={`http://${endpoint}${featuredUrl}`}
                             // width='100%'
                             // height='100%'
                             playing
