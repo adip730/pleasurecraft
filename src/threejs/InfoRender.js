@@ -8,220 +8,358 @@ import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
 import { createCanvas } from "canvas";
 import { createRef } from "react";
 
-import { Cache } from "three";
+import { Cache, QuadraticBezierCurve3 } from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+
+import { Water } from 'three/examples/jsm/objects/Water.js';
+import vertexShader from './VertexShader.js';
+import fragmentShader from './FragmentShader.js';
 
 // Global context var
 var direction = 0;
 
+const waves = {
+  A: { direction: 344, steepness: .1, wavelength: 5 },
+  B: { direction: 330, steepness: .1, wavelength: 10 },
+  C: { direction: 280, steepness: .1, wavelength: 6.9 },
+};
+
 // About page scene demo
 export const InfoRender = () => {
   // Canvas ref
-  const canvasRef = useRef();
+  const canvasRef = useRef(null);
 
   useEffect(() => {
-    // Get user input
+    // Get user input 
     const canvas = canvasRef.current;
-    canvas.addEventListener("wheel", handleScroll);
+    //canvas.addEventListener('wheel', handleScroll);
+
+    // Create the loading div
+    const loadingDiv = document.createElement('div');
+    loadingDiv.id = 'loading';
+    loadingDiv.innerText = 'Loading...';
+
+    // Set the CSS properties to grey out the screen
+    // Set the CSS properties for the loading div
+    loadingDiv.style.position = 'fixed';
+    loadingDiv.style.top = '0';
+    loadingDiv.style.left = '0';
+    loadingDiv.style.width = '100%';
+    loadingDiv.style.height = '100%';
+    loadingDiv.style.background = 'rgba(0, 0, 0, 0.5)'; // semi-transparent black
+    loadingDiv.style.color = 'white'; // set the text color to white
+    loadingDiv.style.padding = '20px'; // add 20px padding around the text
+    loadingDiv.style.fontSize = '24px'; // set the font size to 24px
+    loadingDiv.style.fontWeight = 'bold'; // make the text bold
+    loadingDiv.style.textAlign = 'center'; // center the text horizontally
+    loadingDiv.style.lineHeight = '100vh'; // center the text vertically
+
+
+    // Add the loading div to the DOM
+    document.body.appendChild(loadingDiv);
 
     // Scene
     const scene = new THREE.Scene();
 
-    // variables for control
+    // variables for control 
     var mattAvatar = new THREE.Mesh();
     let derekAvatar = new THREE.Mesh();
     let camera = new THREE.PerspectiveCamera();
     const loader = new GLTFLoader();
-    let centerpoint = new THREE.Vector3();
-    console.time("loaded in");
+    //const derekParent = new THREE.Object3D();
+    //derekParent.position.set(-60, 0, 0);
+    //console.time("loaded in");
 
+    //renderer
+    const renderer = new THREE.WebGLRenderer({ canvas: canvasRef.current, antialias:true });
+    renderer.setClearColor(0xffffff, 1);
+    renderer.setPixelRatio( window.devicePixelRatio );
+		renderer.setSize( window.innerWidth, window.innerHeight );
+
+    //Manual water 
+    const waterGeometry = new THREE.PlaneGeometry(6000, 6000, 1, 1);
+    const water = new Water(
+      waterGeometry,
+      {
+        textureWidth: 512,
+        textureHeight: 512,
+        waterNormals: new THREE.TextureLoader().load('textures/Water0325normal.jpeg', function(texture) {
+          texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+        }),
+        sunDirection: new THREE.Vector3(0, -1, -1),
+        sunColor: null,
+        waterColor: null,
+        distortionScale: 10.0,
+        fog: scene.fog !== undefined,
+        //shadowSide: THREE.BackSide,
+        /*map: new THREE.TextureLoader().load('textures/Water0325.jpeg', function(texture) {
+          texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+        })*/
+      }
+    );
+    water.material.onBeforeCompile = function ( shader ) {
+
+      shader.uniforms.waveA = {
+        value: [
+          Math.sin( ( waves.A.direction * Math.PI ) / 180 ),
+          Math.cos( ( waves.A.direction * Math.PI ) / 180 ),
+          waves.A.steepness,
+          waves.A.wavelength,
+        ],
+      };
+      shader.uniforms.waveB = {
+        value: [
+          Math.sin( ( waves.B.direction * Math.PI ) / 180 ),
+          Math.cos( ( waves.B.direction * Math.PI ) / 180 ),
+          waves.B.steepness,
+          waves.B.wavelength,
+        ],
+      };
+      shader.uniforms.waveC = {
+        value: [
+          Math.sin( ( waves.C.direction * Math.PI ) / 180 ),
+          Math.cos( ( waves.C.direction * Math.PI ) / 180 ),
+          waves.C.steepness,
+          waves.C.wavelength,
+        ],
+      };
+      shader.vertexShader = vertexShader;
+      shader.fragmentShader = fragmentShader;
+
+    };
+
+    //Manual sky 
+    // Create the sphere geometry
+    const sphereGeometry = new THREE.SphereGeometry(3000);
+
+    // Create the sphere material with the environment map
+    const sphereMaterial = new THREE.MeshStandardMaterial({
+      metalness: 1,
+      roughness: 0,
+      side : THREE.BackSide,
+      envMapIntensity: 1 // Set the environment map intensity
+    });
+
+    // Create the sphere mesh with the geometry and material
+    const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+
+    // Load the HDRI environment map
+    const pmremGenerator = new THREE.PMREMGenerator( renderer );
+    const hdrLoader = new THREE.TextureLoader();
+    //let reuseableMap;
+    hdrLoader.load('./Textures/tex (1)/Ultimate_Skies_4k_0058.jpg', function (texture) {
+      const prefilteredCubeMap = pmremGenerator.fromEquirectangular( texture ).texture;
+      //prefilteredCubeMap.encoding = THREE.sRGBEncoding;
+      //reuseableMap = prefilteredCubeMap;
+      sphere.material.envMap = prefilteredCubeMap;
+      sphere.material.needsUpdate = true; // Update the material
+      sphere.material.ambientIntensity = 0;
+      //water.material.envMap = prefilteredCubeMap;
+      pmremGenerator.dispose();
+    });
     // Importing entire scene from c4d export
-    loader.load("./glTF/About Us_v2.glb", (gltf) => {
+    loader.load('./glTF/About Us_v3_Avatars Only.glb', (gltf) => {
       const root = gltf.scene;
+      console.log(dumpObject(root).join('\n'));
       scene.add(root);
-      var waterFloor = root.getObjectByName("Water_Floor");
-      mattAvatar = root.getObjectByName("Matt");
-      derekAvatar = root.getObjectByName("Derek");
-      // HDRI setup
-      const pmremGenerator = new THREE.PMREMGenerator(renderer);
-      const hdrLoader = new THREE.TextureLoader();
-      hdrLoader.load("./Textures/Ultimate_Skies_4k_0058_BOOSTED.jpg", function(
-        texture
-      ) {
-        const prefilteredCubeMap = pmremGenerator.fromEquirectangular(texture)
-          .texture;
-
-        // Set the texture as the environment map for a material
-        var water = waterFloor.getObjectByName("Polygon");
-        mattAvatar.traverse((child) => {
-          if (child.isMesh) {
-            child.material.envMap = prefilteredCubeMap;
-          }
-        });
-        derekAvatar.traverse((child) => {
-          if (child.isMesh) {
-            child.material.envMap = prefilteredCubeMap;
-          }
-        });
-        water.material.envMap = prefilteredCubeMap;
-        pmremGenerator.dispose();
-        //console.log(texture.status);
-      });
-
-      //camera = root.getObjectByName('Camera');
-      console.log(dumpObject(root).join("\n"));
-      centerpoint = new THREE.Vector3(
-        mattAvatar.position.x - derekAvatar.position.x,
-        mattAvatar.position.y - derekAvatar.position.y,
-        mattAvatar.position.z - derekAvatar.position.z
-      );
-      console.log(centerpoint);
-      console.timeLog("loaded in");
+      root.rotateY(Math.PI/2);
+      root.position.y = -3;
+      //var waterFloor = root.getObjectByName('Water_Floor');
+      mattAvatar = root.getObjectByName('Matt');
+      derekAvatar = root.getObjectByName('Derek');
+     
+      derekAvatar.getObjectByName("Jacket_D_1").material = derekAvatar.getObjectByName("Jacket_D-Clothing").material;
+      mattAvatar.getObjectByName("Jacket_M_1").material = mattAvatar.getObjectByName("Jacket_M-Clothing").material;
+      const offWhite = new THREE.Color(240/255, 240/255, 240/255);
+      derekAvatar.getObjectByName("Jacket_D_1").material.color = offWhite;
+      mattAvatar.getObjectByName("Jacket_M_1").material.color = offWhite;
+      derekAvatar.getObjectByName("Jacket_D_1").material.metalness = .5;
+     
       //console.log(camera.position);
-    });
-
-    const mattGeometry = new THREE.BoxGeometry(1, 3, 1);
-    mattGeometry.bevelEnabled = true;
-    mattGeometry.bevelThickness = 32;
-    const mattMaterial = new THREE.MeshStandardMaterial({
-      color: 0x436681,
-      metalness: 0.3,
-      emissive: 0xffffff,
-      emissiveIntensity: 0.1,
-    });
-    const mattr = new THREE.Mesh(mattGeometry, mattMaterial);
+      document.body.removeChild(loadingDiv);
+  });
 
     // Set up the Three.js scene, camera, and renderer
-    const light = new THREE.AmbientLight(0xffffff, 1);
-    // Hemisphere Lighting
-    const sun = new THREE.HemisphereLight(0xffffbb, 0x080820, 1);
+
+    const light = new THREE.AmbientLight(0xffbb77, .3);
+    const light2 = new THREE.AmbientLight(0xffffff, .7);
+    const sun = new THREE.RectAreaLight(0xff7700, .8, 6000, 4500);
+    sun.decay = .3;
+    const sun2 = new THREE.RectAreaLight(0xfff0f0, 1, 3000, 2000);
+    sun2.decay = .6;
+    sun.position.set(-2700, 1100, 0);
+    sun2.position.set(-1550, 700, 0);
+    //sun.visible = false;
+    //sun2.visible = false;
+    sun.lookAt(0,0,0);
+    sun2.lookAt(0,0,0);
     scene.add(light);
+    scene.add(light2);
     scene.add(sun);
+    scene.add(sun2);
+    water.rotation.x = - Math.PI / 2;
 
-    camera = new THREE.PerspectiveCamera(
-      75,
-      canvasRef.current.width / canvasRef.current.height,
-      0.1,
-      4000
-    );
-    camera.position.y = 150;
+    scene.add( sphere );
+    sphere.position.set(0, 200, 0);
+    //sphere.material.transparent = true;
+    //sphere.material.opacity = 0;
+    //sphere.material.reflectivity = 0;
+    scene.add( water );
+    //water.position.y = 28;
+    water.material.side = THREE.FrontSide;
+    //water.material.envMapIntensity = 1;
+    water.material.ambientIntensity = .2;
+    water.material.transparent = true;
+    water.material.opacity = 0.8;
 
+    camera = new THREE.PerspectiveCamera(75, canvasRef.current.width / canvasRef.current.height, 0.1, 4000);
+    //camera.position.set(0, 75, 0);
     scene.add(camera);
 
-    const renderer = new THREE.WebGLRenderer({
-      canvas: canvasRef.current,
-      antialias: true,
-    });
-    renderer.setClearColor(0xffffff, 1);
-    renderer.setSize(canvasRef.current.width, canvasRef.current.height);
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 2.0;
+    controls.target.set( 0, 80, 0);
+    controls.enablePan = false;
+    controls.rotateSpeed = .5; // reduce the maximum orbit speed
+    controls.zoomSpeed = 0.5; // reduce the maximum zoom speed
+    controls.minPolarAngle = Math.PI/3.5; // lock vertical rotation
+    controls.maxPolarAngle = Math.PI/2; // lock vertical rotation
+    controls.minDistance = 230;
+    controls.maxDistance = 500;
 
-    var theta = Math.PI / 2;
-    renderer.setAnimationLoop(animate);
-
-    var orbit_magnitude = 0;
-    var rotate_avatar = 0;
     var framecount = 0;
+    var rotateAvatar = 0;
+    //var isRotating = false;
+    var clock = new THREE.Clock();
+    //renderer.setAnimationLoop(animate);
 
     function animate() {
       // Translating camera on a horizontal fixed orbit
-      var frame = (2 * Math.PI) / 3600;
-      var r = 500;
-      var coordinates = calculate_orbit(r, theta);
-      //camera.position.x = coordinates[0] - 295.460323974609 //offsetting to "scene origin" which is not true origin
-      camera.position.x = coordinates[0] - centerpoint.x;
-      camera.position.z = coordinates[1] - centerpoint.z;
+      controls.update();
+      //sphere.rotation.z += Math.PI/4;
+      
+      // Calculate the angle between the camera and the avatars
+      const avatarDirection = new THREE.Vector3();
+      mattAvatar.getWorldDirection(avatarDirection);
 
-      // Rotating camera to track midpoint between avatars, which is not the true origin
-      //camera.lookAt(new THREE.Vector3(-295.460323974609, 758.3621655634962, 0));
-      camera.lookAt(centerpoint);
+      const cameraDirection = new THREE.Vector3();
+      cameraDirection.subVectors(camera.position, mattAvatar.position).normalize();
 
-      theta += frame * direction;
-      //console.log(direction)
-      //console.log(theta)
+      var angle = avatarDirection.angleTo(cameraDirection);
 
-      // Every time the camera rotates through 1/3 of the scene, Matt and Derek's pose changes
-      // When they change pose, they rotate to face ahead of the Camera
-      orbit_magnitude += direction * frame;
-
-      if (orbit_magnitude >= Math.PI / 3) {
-        orbit_magnitude = 0;
-        rotate_avatar = -1;
+      if (avatarDirection.dot(cameraDirection.cross(new THREE.Vector3(0, 1, 0))) > 0) {
+        angle = -angle;
       }
 
-      if (orbit_magnitude <= -Math.PI / 3) {
-        orbit_magnitude = 0;
-        rotate_avatar = 1;
-      }
+      //console.log("AVATAR ANGLE: " + angle);
+      const dist = Math.abs(angle);
 
-      if (rotate_avatar !== 0) {
-        framecount += 1;
-        mattAvatar.rotation.y += (rotate_avatar * Math.PI) / 30;
-        derekAvatar.rotation.y += (rotate_avatar * Math.PI) / 30;
-      }
-      if (Math.abs(framecount) >= 20) {
-        rotate_avatar = 0;
+      if(dist >= (100 * Math.PI / 180) && rotateAvatar === 0){
+        rotateAvatar = (angle > 0) ? 1 : -1;
+      };
+      if(framecount >= 40 && dist < 20 * Math.PI / 180){
+        rotateAvatar = 0;
         framecount = 0;
+      }
+      if(rotateAvatar !== 0 && (dist > 20 * Math.PI / 180)) {
+        // Rotate the avatars by a small amount
+        mattAvatar.rotation.y += rotateAvatar * Math.PI / 45;
+        derekAvatar.rotation.y += rotateAvatar * Math.PI / 45;
+        framecount ++;
       }
       //console.log(rotate_avatar);
 
-      if (theta === (2 * Math.PI) / 3) {
-        // play the animation
-        //animationMixer.clipAction(gltf.animations[0]).play();
-      }
+      //water
+      //water.material.uniforms.time.value += 1.0 / 60.0;
+      water.material.uniforms[ 'time' ].value += clock.getDelta();
+
       //console.log(camera.position);
       renderer.render(scene, camera);
+      requestAnimationFrame(animate);
+
     }
 
-    return () => {
-      canvasRef && canvasRef.current && canvasRef.current.removeEventListener("wheel", handleScroll);
-    };
+    animate();
+
   }, []); // The empty array ensures that this effect only runs once when the component mounts
 
-  return (
-    <div>
-      <canvas ref={canvasRef} width="600" height="600" />
-    </div>
-  );
-};
+return (
+  <div id = "main">
+    <canvas ref={canvasRef} className = "three" style={{maxHeight:"100%", maxWidth:"100%"}} width="1920px" height="1080px" />
+  </div>
+);
+}
 export default InfoRender;
 
 // Draws a circular orbit around (0,0)
-function calculate_orbit(r, theta) {
-  var x = r * Math.cos(theta);
+function calculate_orbit(r, theta){
+  var x = (r * Math.cos(theta));
   var y = r * Math.sin(theta);
-  return [x, y];
+  return [x, y]
 }
 
-// Tracks user interaction
-let timeout;
-function handleMouseMove(event) {
-  var coefficient = 1;
-  direction = event.movementX * coefficient;
-  clearTimeout(timeout);
-  timeout = setTimeout(() => {
-    direction = 0;
-  }, 100);
-}
-function handleScroll(event) {
-  event.preventDefault();
-  var coefficient = 1;
-  direction = event.deltaY * coefficient;
-  clearTimeout(timeout);
-  timeout = setTimeout(() => {
-    direction = 0;
-  }, 2500);
-}
-function dumpObject(obj, lines = [], isLast = true, prefix = "") {
-  const localPrefix = isLast ? "└─" : "├─";
-  lines.push(
-    `${prefix}${prefix ? localPrefix : ""}${obj.name || "*no-name*"} [${
-      obj.type
-    }]`
-  );
-  const newPrefix = prefix + (isLast ? "  " : "│ ");
-  const lastNdx = obj.children.length - 1;
-  obj.children.forEach((child, ndx) => {
-    const isLast = ndx === lastNdx;
-    dumpObject(child, lines, isLast, newPrefix);
-  });
-  return lines;
-}
+function dumpObject(obj, lines = [], isLast = true, prefix = '') {
+    const localPrefix = isLast ? '└─' : '├─';
+    lines.push(`${prefix}${prefix ? localPrefix : ''}${obj.name || '*no-name*'} [${obj.type}]`);
+    const newPrefix = prefix + (isLast ? '  ' : '│ ');
+    const lastNdx = obj.children.length - 1;
+    obj.children.forEach((child, ndx) => {
+      const isLast = ndx === lastNdx;
+      dumpObject(child, lines, isLast, newPrefix);
+    });
+    return lines;
+  }
+
+  function getWaveInfo( x, z, time ) {
+
+    const pos = new THREE.Vector3();
+    const tangent = new THREE.Vector3( 1, 0, 0 );
+    const binormal = new THREE.Vector3( 0, 0, 1 );
+    Object.keys( waves ).forEach( ( wave ) => {
+
+      const w = waves[ wave ];
+      const k = ( Math.PI * 2 ) / w.wavelength;
+      const c = Math.sqrt( 9.8 / k );
+      const d = new THREE.Vector2(
+        Math.sin( ( w.direction * Math.PI ) / 180 ),
+        - Math.cos( ( w.direction * Math.PI ) / 180 )
+      );
+      const f = k * ( d.dot( new THREE.Vector2( x, z ) ) - c * time );
+      const a = w.steepness / k;
+
+      pos.x += d.y * ( a * Math.cos( f ) );
+      pos.y += a * Math.sin( f );
+      pos.z += d.x * ( a * Math.cos( f ) );
+
+      tangent.x += - d.x * d.x * ( w.steepness * Math.sin( f ) );
+      tangent.y += d.x * ( w.steepness * Math.cos( f ) );
+      tangent.z += - d.x * d.y * ( w.steepness * Math.sin( f ) );
+
+      binormal.x += - d.x * d.y * ( w.steepness * Math.sin( f ) );
+      binormal.y += d.y * ( w.steepness * Math.cos( f ) );
+      binormal.z += - d.y * d.y * ( w.steepness * Math.sin( f ) );
+
+    } );
+
+    const normal = binormal.cross( tangent ).normalize();
+
+    return { position: pos, normal: normal };
+
+  }
+
+  function rotateAvatarsToCamera(camera, mattAvatar, derekAvatar, rotateAvatar, isRotating) {
+    const avatarDirection = new THREE.Vector3();
+    mattAvatar.getWorldDirection(avatarDirection);
+  
+    const cameraDirection = new THREE.Vector3();
+    cameraDirection.subVectors(camera.position, mattAvatar.position).normalize();
+  
+    var angle = avatarDirection.angleTo(cameraDirection);
+  
+    if (avatarDirection.dot(cameraDirection.cross(new THREE.Vector3(0, 1, 0))) > 0) {
+      angle = -angle;
+    }
+  
+  }
+  

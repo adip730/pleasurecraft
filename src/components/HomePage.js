@@ -100,8 +100,8 @@ export const HomePage = (props) => {
         id="scrollview"
       >
         <div className={classes.viewContainer} id="logo-container">
-          <p>Spinning Logo goes here</p>
-          {/* <HomeLogo /> */}
+          {/* <p>Spinning Logo goes here</p> */}
+          <HomeLogo />
         </div>
         {projects.map((proj, ind) => (
           <div className={classes.viewContainer}>
