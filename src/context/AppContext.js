@@ -14,7 +14,7 @@ export const AppContextProvider = (props) => {
   const invokeGetProjects = async () => {
     await getProjects()
       .then((res) => {
-        // console.log(res);
+
         let proj = res.data.data;
         let temp = [];
         let tempRoutes = [];
@@ -35,7 +35,6 @@ export const AppContextProvider = (props) => {
   const invokeGetConfig = async () => {
     await getConfig()
       .then((res) => {
-        console.log(res);
         // let conf = res.data.data
         // let temp = [];
         // proj.forEach((el) => temp.push(el.attributes));
@@ -67,7 +66,7 @@ export const AppContextProvider = (props) => {
 
   const invokeStart = () => {
     invokeGetProjects();
-    invokeGetConfig();
+    // invokeGetConfig();
     // invokeGetMedia();
     // invokeGetFolders();
   };

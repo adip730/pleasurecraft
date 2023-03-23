@@ -23,7 +23,7 @@ const useStyles = makeStyles(() => ({
   },
   viewContainer: {
     position: "relative",
-    height: "100vh",
+    height: "100dvh",
     width: "100%",
     //border: '3px solid green',
     display: "flex",
@@ -100,8 +100,8 @@ export const HomePage = (props) => {
         id="scrollview"
       >
         <div className={classes.viewContainer} id="logo-container">
-          {/* <p>Spinning Logo goes here</p> */}
-          <HomeLogo />
+          <p>Spinning Logo goes here</p>
+          {/* <HomeLogo /> */}
         </div>
         {projects.map((proj, ind) => (
           <div className={classes.viewContainer}>

@@ -10,7 +10,7 @@ const useStyles = makeStyles(() => ({
   root: {
     display: "flex",
     flexDirection: "column",
-    height: "100vh",
+    height: "100dvh",
     width: "100%",
     alignItems: "center",
     justifyContent: "center",
