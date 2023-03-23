@@ -4,6 +4,7 @@ import AppContext from "../context/AppContext";
 import Preview from "./Preview";
 import PreviewPage from "./PreviewPage";
 import HomeLogo from "../threejs/HomeLogo";
+import useMediaQuery from "@mui/material/useMediaQuery";
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -37,7 +38,9 @@ const useStyles = makeStyles(() => ({
 export const HomePage = (props) => {
   const { state, api } = useContext(AppContext);
   const { projects } = state;
-  const { invokeStart } = api;
+  const { invokeStart, setShowLogo } = api;
+
+  const largeScreen = useMediaQuery("(min-width:600px)");
 
   useEffect(() => {
     invokeStart();
@@ -49,37 +52,65 @@ export const HomePage = (props) => {
   const [scrollPos, setScrollPos] = useState(0);
 
   useEffect(() => {
-      var view = document.getElementById('scrollview');
-      view.addEventListener('scroll', handleScroll);
+    let view = document.getElementById("scrollview");
+    view.addEventListener("scroll", handleScroll);
 
-    //   const handleScroll  = () => {
-    //     console.log(view.scrollY)
-    // }
-  }, [])
+    let logoObserver = new IntersectionObserver(showHide, logoObserverOptions);
+    let target = document.getElementById("logo-container");
+    if (largeScreen) {
+      logoObserver.observe(target);
+    }
+    return () => {
+      logoObserver.unobserve(target);
+    };
+  }, []);
 
-  let observerOptions = {
+  let videoObserverOptions = {
     root: null,
     rootMargin: "0px",
-    threshold: 1.0
+    threshold: 1.0,
   };
-  
 
-  const handleScroll  = () => {
-      let scrollTop = viewRef.current.scrollTop;
-      setScrollPos(scrollTop);
+  let logoObserverOptions = {
+    root: null,
+    rootMargin: "0px",
+    threshold: .8,
+  };
+
+  function showHide(entry) {
+    if (entry[0].isIntersecting) {
+      setShowLogo(false);
+    } else {
+      setShowLogo(true);
+    }
+  }
+
+  const handleScroll = () => {
+    let scrollTop = viewRef.current.scrollTop;
+    setScrollPos(scrollTop);
     // console.log(scrollTop);
-}
+  };
 
   return (
     <div className={classes.root}>
-      <div className={classes.scrollView} ref={viewRef} onScroll = {handleScroll} id='scrollview'>
-        <div className={classes.viewContainer}>
-          <p>Spinning Logo goes here</p>
-          {/* <HomeLogo /> */}
+      <div
+        className={classes.scrollView}
+        ref={viewRef}
+        onScroll={handleScroll}
+        id="scrollview"
+      >
+        <div className={classes.viewContainer} id="logo-container">
+          {/* <p>Spinning Logo goes here</p> */}
+          <HomeLogo />
         </div>
         {projects.map((proj, ind) => (
           <div className={classes.viewContainer}>
-            <Preview options={observerOptions} data={proj} index={ind} scrollPos={scrollPos}/>
+            <Preview
+              options={videoObserverOptions}
+              data={proj}
+              index={ind}
+              scrollPos={scrollPos}
+            />
           </div>
         ))}
       </div>

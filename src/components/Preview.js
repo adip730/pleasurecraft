@@ -88,12 +88,13 @@ export const Preview = (props) => {
     director,
     code,
     featured,
+    preview,
   } = data;
 
   const [showSubtitle, setShowSubtitle] = useState(false);
 
   useEffect(() => {
-    let featUrl = featured.data.attributes.url;
+    let featUrl = preview && preview.data && preview.data.attributes ? preview.data.attributes.url : featured.data.attributes.url;
     setFeaturedUrl(featUrl);
   }, []);
 

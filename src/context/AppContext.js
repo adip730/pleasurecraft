@@ -9,6 +9,7 @@ export const AppContextProvider = (props) => {
   const [config, setConfig] = useState();
   
   const [showNav, setShowNav] = useState(true);
+  const [showLogo, setShowLogo] = useState(true);
 
   const invokeGetProjects = async () => {
     await getProjects()
@@ -75,10 +76,12 @@ export const AppContextProvider = (props) => {
     projects: projects,
     projectRoutes: projectRoutes,
     showNav: showNav,
+    showLogo: showLogo,
   };
   const api = {
     invokeStart: invokeStart,
     setShowNav: setShowNav,
+    setShowLogo: setShowLogo
   };
   return (
     <AppContext.Provider value={{ state, api }}>

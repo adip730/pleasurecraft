@@ -1,26 +1,36 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useRef } from "react";
 import ReactPlayer from "react-player/file";
 import makeStyles from "@mui/styles/makeStyles";
 import Typography from "@mui/material/Typography";
 import Grid from "@mui/material/Grid";
 import Button from "@mui/material/Button";
+import IconButton from "@mui/material/IconButton";
+import Slider from "@mui/material/Slider";
 import { useNavigate } from "react-router-dom";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import AppContext from "../context/AppContext";
+
+import PlayCircleOutlinedIcon from "@mui/icons-material/PlayCircleOutlined";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import FullscreenIcon from "@mui/icons-material/Fullscreen";
+import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
+import PauseIcon from "@mui/icons-material/Pause";
+import VolumeUpIcon from "@mui/icons-material/VolumeUp";
+import VolumeOffIcon from "@mui/icons-material/VolumeOff";
+import ReplayIcon from "@mui/icons-material/Replay";
 
 const useStyles = makeStyles(() => ({
   "@keyframes fadein": {
     "0%": {
       opacity: 0,
-      //   transform: "translateY(-200%)",
     },
     "100%": {
       opacity: 1,
-      //   transform: "translateY(0)",
     },
   },
   root: {
     animation: "$fadein 1000ms",
+    position: "absolute",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
@@ -60,13 +70,33 @@ const useStyles = makeStyles(() => ({
     // marginRight: "64px",
     // objectFit: "cover",
   },
+  overlay: {
+    height: "100%",
+    width: "100%",
+    position: "absolute",
+    top: 0,
+    left: 0,
+    backgroundColor: "#00000033",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 3,
+  },
+  thumbnail: {
+    height: "100%",
+    width: "100%",
+    position: "absolute",
+    top: 0,
+    left: 0,
+    zIndex: 2,
+  },
   infoSection: {
-    // position: 'fixed',
+    position: "relative",
     // bottom: 0,
     // marginTop: "auto",
     height: "35%",
     width: "100%",
-    boxSizing: "border-box",
+    // boxSizing: "border-box",
     padding: "16px 0",
     display: "flex",
     flexDirection: "column",
@@ -99,17 +129,38 @@ const useStyles = makeStyles(() => ({
     padding: "4px 32px",
   },
   playPause: {
-    color: "#FFFFFF",
     maxWidth: "10%",
+  },
+  volume: {
+    maxWidth: "10%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "flex-start",
   },
   scrub: {
-    color: "#FFFFFF",
     flexGrow: 1,
-    border: "1px solid green",
+    padding: "0 2%",
+    display: "flex",
+    alignItems: "center",
   },
   fullScreen: {
-    color: "#FFFFFF",
     maxWidth: "10%",
+  },
+  durationSlider: {
+    color: "#FFFFFF",
+    // height: 24,
+    "& .MuiSlider-track": {
+      border: "none",
+      backgroundColor: "#FFFFFF",
+      height: "8px",
+    },
+    "& .MuiSlider-thumb": {
+      display: "none",
+    },
+    "& .MuiSlider-rail": {
+      backgroundColor: "#FFFFFF",
+      height: "8px",
+    },
   },
 }));
 
@@ -133,26 +184,32 @@ export const ProjectPage = (props) => {
     director,
     code,
     featured,
+    thumbnail,
     gallery,
     description,
   } = data;
 
   const largeScreen = useMediaQuery("(min-width:800px)");
 
+  const playerRef = useRef(null);
+
   const [featuredUrl, setFeaturedUrl] = useState("");
+  const [thumbnailUrl, setThumbnailUrl] = useState("");
   const [creditsArr, setCreditsArr] = useState([]);
 
   const [expanded, setExpanded] = useState(false);
   const [playing, setPlaying] = useState(false);
+  const [volume, setVolume] = useState(0);
   const [showControls, setShowControls] = useState(false);
+  const [showOverlay, setShowOverlay] = useState(true);
+  const [videoDuration, setVideoDuration] = useState(0);
+  const [seeking, setSeeking] = useState(false);
 
   useEffect(() => {
     let featUrl = featured.data.attributes.url;
-    let imgUrls = [];
+    let thumbUrl = thumbnail && thumbnail.data && thumbnail.data.attributes ? thumbnail.data.attributes.url : '';
     setFeaturedUrl(featUrl);
-    // let imgs = gallery.data;
-    // imgs.forEach((el) => imgUrls.push(el.attributes.url));
-    // setGalleryUrls([...imgUrls]);
+    setThumbnailUrl(thumbUrl);
 
     if (roles) {
       let tempCreds = roles.split(",");
@@ -164,22 +221,49 @@ export const ProjectPage = (props) => {
     } else {
       setCreditsArr([]);
     }
-    // const imgUrls = [];
-    // const vidUrls = []
-    // media.forEach((el) => el.url.includes('.jpg') ? imgUrls.push(el.url) : vidUrls.push(el.url));
-    // setImageUrls([...imgUrls]);
-    // setVideoUrls([...vidUrls]);
-    // console.log(`http://localhost:1337${imgUrls[0]}`);
+
   }, []);
 
-  const handlePlay = () => {
-    let bool = expanded;
-    // let play = playing;
-    setExpanded(!bool);
-    // setPlaying(!play);
+  useEffect(() => {
+    if (!largeScreen) {
+      if (!expanded) {
+        setShowOverlay(true);
+        setPlaying(false);
+      }
+    }
+
+  }, [expanded])
+
+  useEffect(() => {
+    if (!largeScreen) {
+      if (playing) {
+        setExpanded(true);
+      }
+    }
+
+  }, [playing])
+
+  const handleProgress = (changeState) => {
+    if (changeState.played === 1) {
+      setPlaying(false);
+    }
+    if (!seeking) {
+      setVideoDuration(changeState.played);
+    }
   };
 
-  //   const handlePlay = () => {};
+  const onSeek = (e, newVal) => {
+    setVideoDuration(parseFloat(newVal / 100));
+  };
+
+  const onSeekMouseDown = (e) => {
+    setSeeking(true);
+  };
+
+  const onSeekMouseUp = (e, newVal) => {
+    setSeeking(false);
+    playerRef.current.seekTo(parseFloat(newVal / 100));
+  };
 
   useEffect(() => {
     let container = document.getElementById("container");
@@ -241,7 +325,8 @@ export const ProjectPage = (props) => {
           id="player-wrapper"
         >
           <ReactPlayer
-            onClick={handlePlay}
+            onClick={() => setPlaying(!playing)}
+            ref={playerRef}
             id="videoFrame"
             style={{
               maxHeight: "100%",
@@ -252,9 +337,6 @@ export const ProjectPage = (props) => {
               top: 0,
               left: 0,
               alignContent: "center",
-              //   right: 0,
-              //   bottom: 0,
-              //   margin: "auto",
             }}
             url={`http://${endpoint}${featuredUrl}`}
             // width="100%"
@@ -262,26 +344,73 @@ export const ProjectPage = (props) => {
             width={expanded ? "auto" : "100%"}
             height={expanded ? "100%" : "auto"}
             playing={playing}
-            loop
-            muted
-            fluid={false}
+            // loop
+            volume={volume}
+            // muted
+            fluid={true}
+            progressInterval={100}
+            onProgress={handleProgress}
           />
-          {showControls && !expanded && (
+          {showControls && !showOverlay && !expanded && (
             <div className={classes.controls}>
               <Button
                 className={classes.playPause}
                 onClick={() => setPlaying(!playing)}
               >
-                {playing ? "Pause" : "Play"}
+                {playing ? (
+                  <PauseIcon style={{ color: "white" }} />
+                ) : videoDuration === 1 ? (
+                  <ReplayIcon style={{ color: "white" }} />
+                ) : (
+                  <PlayArrowIcon style={{ color: "white" }} />
+                )}
               </Button>
-              <Button className={classes.scrub}></Button>
+              <Button
+                className={classes.volume}
+                onClick={() => setVolume(volume === 1 ? 0 : 1)}
+              >
+                {volume === 1 ? (
+                  <VolumeUpIcon style={{ color: "white" }} />
+                ) : (
+                  <VolumeOffIcon style={{ color: "white" }} />
+                )}
+              </Button>
+              <div className={classes.scrub}>
+                <Slider
+                  step={1}
+                  value={videoDuration * 100}
+                  className={classes.durationSlider}
+                  onChange={onSeek}
+                  onMouseDown={onSeekMouseDown}
+                  onChangeCommitted={onSeekMouseUp}
+                />
+              </div>
               <Button
                 className={classes.fullScreen}
-                onClick={() => setExpanded(!expanded)}
+                onClick={() => setExpanded(true)}
               >
-                {expanded ? "shrink" : "expand"}
+                <FullscreenIcon style={{ color: "white" }} />
               </Button>
             </div>
+          )}
+          {showOverlay && (
+            <>
+            <div className={classes.overlay}>
+              <IconButton
+                size="large"
+                style={{ color: "#FFFFFF" }}
+                onClick={() => {
+                  setShowOverlay(false);
+                  setPlaying(true);
+                }}
+              >
+                <PlayCircleOutlinedIcon
+                  style={{ height: "60px", width: "60px" }}
+                />
+              </IconButton>
+            </div>
+            {thumbnailUrl !== '' && <img className={classes.thumbnail} src={`http://${endpoint}${thumbnailUrl}`} />}
+            </>
           )}
         </div>
         {showControls && expanded && (
@@ -290,20 +419,42 @@ export const ProjectPage = (props) => {
               className={classes.playPause}
               onClick={() => setPlaying(!playing)}
             >
-              {playing ? "Pause" : "Play"}
+              {playing ? (
+                <PauseIcon style={{ color: "white" }} />
+              ) : videoDuration === 1 ? (
+                <ReplayIcon style={{ color: "white" }} />
+              ) : (
+                <PlayArrowIcon style={{ color: "white" }} />
+              )}
             </Button>
-            <Button className={classes.scrub}></Button>
+            <Button
+              className={classes.volume}
+              // onClick={}
+            >
+              <VolumeUpIcon style={{ color: "white" }} />
+            </Button>
+            <div className={classes.scrub}>
+              <Slider
+                step={1}
+                value={videoDuration * 100}
+                className={classes.durationSlider}
+                onChange={onSeek}
+                onMouseDown={onSeekMouseDown}
+                onChangeCommitted={onSeekMouseUp}
+              />
+            </div>
             <Button
               className={classes.fullScreen}
-              onClick={() => setExpanded(!expanded)}
+              onClick={() => setExpanded(false)}
             >
-              {expanded ? "shrink" : "expand"}
+              <FullscreenExitIcon style={{ color: "white" }} />
             </Button>
           </div>
         )}
       </div>
 
-      <div
+      <Grid
+        container
         className={classes.infoSection}
         style={{ display: expanded ? "none" : "flex" }}
       >
@@ -370,7 +521,7 @@ export const ProjectPage = (props) => {
             );
           })}
         </Grid>
-      </div>
+      </Grid>
     </div>
   );
 };

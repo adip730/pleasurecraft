@@ -2,8 +2,11 @@ import React, { useContext } from "react";
 import makeStyles from "@mui/styles/makeStyles";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
+import Grid from '@mui/material/Grid';
 import { useNavigate } from "react-router-dom";
 import AppContext from "../context/AppContext";
+import useMediaQuery from "@mui/material/useMediaQuery";
+
 
 const useStyles = makeStyles(() => ({
   navBar: {
@@ -50,20 +53,52 @@ const useStyles = makeStyles(() => ({
     opacity: "1 !important",
     color: "#000000",
   },
+  logo: {
+    height: '50px',
+    marginRight: '32px',
+    animation: "$fadein 1000ms",
+  },
+  "@keyframes fadein": {
+    "0%": {
+      opacity: 0,
+        transform: "translate(-100%, 50%)",
+        // transform: "translateX(-50%)"
+    },
+    "100%": {
+      opacity: 1,
+        transform: "translate(0, 0)",
+    },
+  },
+  "@keyframes fadeout": {
+    "0%": {
+      opacity: 1,
+      transform: "translate(0, 0)",
+    },
+    "100%": {
+      opacity: 0,
+        transform: "translate(-50%, 100%)",
+        // transform: "translateX(-50%)"
+    },
+  },
 }));
+
 
 export const NavBar = (props) => {
   const classes = useStyles();
   let navigate = useNavigate();
   const { state } = useContext(AppContext);
-  const { showNav } = state;
+  const { showNav, showLogo } = state;
+
+const largeScreen = useMediaQuery("(min-width:600px)");
+
 
   return (
     // showNav && (
       <div className={classes.navBar} style={{
         transform: showNav ? 'scaleY(1)' : 'scaleY(0)'
       }}>
-        <div className={classes.toolbar}>
+        <Grid container className={classes.toolbar} style={{minWidth: largeScreen && showLogo ? '100%' : '60%'}}>
+          <Grid item xs={6} sm={4}>
           <Button className={classes.menuButton} onClick={(e) => navigate("/")}>
             <Typography
               style={{ fontFamily: "Square721" }}
@@ -72,6 +107,9 @@ export const NavBar = (props) => {
               Pleasure Craft
             </Typography>
           </Button>
+          </Grid>
+          <Grid item xs={3}>
+
           <Button
             className={classes.menuButton}
             onClick={(e) => navigate("/info")}
@@ -83,6 +121,9 @@ export const NavBar = (props) => {
               Info
             </Typography>
           </Button>
+          </Grid>
+          <Grid item xs={3}>
+
           <Button
             className={classes.menuButton}
             onClick={(e) => navigate("/index")}
@@ -94,7 +135,12 @@ export const NavBar = (props) => {
               Index
             </Typography>
           </Button>
-        </div>
+          </Grid>
+          <Grid item xs={0} sm={2} align="right">
+
+          {largeScreen && showLogo ? <img className={classes.logo} src={"./logo-gif.gif"} onClick={(e) => navigate("/")}/> : null}
+        </Grid>
+        </Grid>
       </div>
     // )
     /* <Grid
