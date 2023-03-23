@@ -2,11 +2,10 @@ import React, { useContext } from "react";
 import makeStyles from "@mui/styles/makeStyles";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
-import Grid from '@mui/material/Grid';
+import Grid from "@mui/material/Grid";
 import { useNavigate } from "react-router-dom";
 import AppContext from "../context/AppContext";
 import useMediaQuery from "@mui/material/useMediaQuery";
-
 
 const useStyles = makeStyles(() => ({
   navBar: {
@@ -28,15 +27,15 @@ const useStyles = makeStyles(() => ({
     alignItems: "center",
     padding: "0px 24px",
     boxSizing: "border-box",
-    transition: 'all .25s ease-in-out',
-    transformOrigin: 'top',
+    transition: "all .25s ease-in-out",
+    transformOrigin: "top",
   },
   toolbar: {
     display: "flex",
     minWidth: "60%",
     flexDirection: "row",
     background: "#FFFFFF",
-    justifyContent: "space-between",
+    // justifyContent: "space-between",
     alignItems: "center",
     height: "100%",
     zIndex: 2,
@@ -45,28 +44,28 @@ const useStyles = makeStyles(() => ({
   menuButton: {
     fontFamily: "Square721",
     cursor: "pointer",
-    textAlign: "left",
-  },
-  barText: {
-    fontFamily: "Square721",
-    fontSize: "1.5em",
+    textAlign: "center",
+    padding: 0,
     opacity: "1 !important",
     color: "#000000",
   },
+  barText: {
+    fontFamily: "Square721",
+    // fontSize: "1.5em",
+  },
   logo: {
-    height: '50px',
-    marginRight: '32px',
+    height: "44px",
     animation: "$fadein 1000ms",
   },
   "@keyframes fadein": {
     "0%": {
       opacity: 0,
-        transform: "translate(-100%, 50%)",
-        // transform: "translateX(-50%)"
+      transform: "translate(-100%, 50%)",
+      // transform: "translateX(-50%)"
     },
     "100%": {
       opacity: 1,
-        transform: "translate(0, 0)",
+      transform: "translate(0, 0)",
     },
   },
   "@keyframes fadeout": {
@@ -76,12 +75,11 @@ const useStyles = makeStyles(() => ({
     },
     "100%": {
       opacity: 0,
-        transform: "translate(-50%, 100%)",
-        // transform: "translateX(-50%)"
+      transform: "translate(-50%, 100%)",
+      // transform: "translateX(-50%)"
     },
   },
 }));
-
 
 export const NavBar = (props) => {
   const classes = useStyles();
@@ -89,59 +87,82 @@ export const NavBar = (props) => {
   const { state } = useContext(AppContext);
   const { showNav, showLogo } = state;
 
-const largeScreen = useMediaQuery("(min-width:600px)");
-
+  const largeScreen = useMediaQuery("(min-width:800px)");
 
   return (
     // showNav && (
-      <div className={classes.navBar} style={{
-        transform: showNav ? 'scaleY(1)' : 'scaleY(0)'
-      }}>
-        <Grid container className={classes.toolbar} style={{minWidth: largeScreen && showLogo ? '100%' : '60%'}}>
-          <Grid item xs={6} sm={4}>
-          <Button className={classes.menuButton} onClick={(e) => navigate("/")}>
-            <Typography
-              style={{ fontFamily: "Square721" }}
-              className={classes.barText}
-            >
-              Pleasure Craft
-            </Typography>
-          </Button>
-          </Grid>
-          <Grid item xs={3}>
-
+    <div
+      className={classes.navBar}
+      style={{
+        transform: showNav ? "scaleY(1)" : "scaleY(0)",
+        padding: largeScreen ? "0px 24px" : "0px 8px",
+      }}
+    >
+      <Grid
+        container
+        className={classes.toolbar}
+        style={{
+          minWidth: largeScreen && showLogo ? "100%" : "60%",
+        }}
+      >
+        <Grid item xs={6} sm={4}>
           <Button
             className={classes.menuButton}
+            fullWidth
+            style={{
+              fontFamily: "Square721",
+              color: "#000000",
+              justifyContent: "flex-start",
+              fontSize: largeScreen ? "1rem" : ".75rem",
+            }}
+            onClick={(e) => navigate("/")}
+          >
+            Pleasure Craft
+          </Button>
+        </Grid>
+        <Grid item xs={3} sm={3}>
+          <Button
+            className={classes.menuButton}
+            fullWidth
+            style={{
+              fontFamily: "Square721",
+              color: "#000000",
+              justifyContent: "flex-end",
+
+              fontSize: largeScreen ? "1rem" : ".75rem",
+            }}
             onClick={(e) => navigate("/info")}
           >
-            <Typography
-              style={{ fontFamily: "Square721" }}
-              className={classes.barText}
-            >
-              Info
-            </Typography>
+            Info
           </Button>
-          </Grid>
-          <Grid item xs={3}>
-
+        </Grid>
+        <Grid item xs={3} sm={3}>
           <Button
             className={classes.menuButton}
+            fullWidth
+            style={{
+              fontFamily: "Square721",
+              color: "#000000",
+              justifyContent: "flex-end",
+
+              fontSize: largeScreen ? "1rem" : ".75rem",
+            }}
             onClick={(e) => navigate("/index")}
           >
-            <Typography
-              style={{ fontFamily: "Square721" }}
-              className={classes.barText}
-            >
-              Index
-            </Typography>
+            Index
           </Button>
-          </Grid>
-          <Grid item xs={0} sm={2} align="right">
-
-          {largeScreen && showLogo ? <img className={classes.logo} src={"./logo-gif.gif"} onClick={(e) => navigate("/")}/> : null}
         </Grid>
+        <Grid item xs={0} sm={2} style={{display: 'flex', alignItems: 'center', justifyContent: 'flex-end'}} direction="row" >
+          {largeScreen && showLogo ? (
+            <img
+              className={classes.logo}
+              src={"./logo-gif.gif"}
+              onClick={(e) => navigate("/")}
+            />
+          ) : null}
         </Grid>
-      </div>
+      </Grid>
+    </div>
     // )
     /* <Grid
         container
