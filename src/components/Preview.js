@@ -117,7 +117,8 @@ export const Preview = (props) => {
 
   function growTimer(container, wind) {
     wind.style.paddingTop = "0px";
-    container.style.transition = "width .75s, height .5s";
+    // container.style.transition = "width .75s, height .5s";
+    container.style.transition = "all .5s";
     container.style.width = "100%";
     container.style.height = "100%";
     container.style.borderRadius = "0px";
@@ -165,13 +166,13 @@ export const Preview = (props) => {
 
 
   useEffect(() => {
-    if (largeScreen) {
+    // if (largeScreen) {
       let container = document.getElementById(`container-${name}`);
       let vwh = window.innerHeight;
-      let factor = window.innerHeight * 0.65;
+      let factor = window.innerHeight * (largeScreen ? 0.65 : .85);
       let subtract = (scrollPos - (1 + index) * vwh).toFixed(0);
       let scale = 100 - ((subtract * 100) / factor).toFixed(0);
-      let scaleReverse = 100 - ((subtract * -100) / 400).toFixed(0);
+      let scaleReverse = 100 - ((subtract * -100) / factor).toFixed(0);
       if (subtract < factor && subtract > 0) {
         container.style.transformOrigin = "top";
         container.style.transform = `scaleY(${scale}%)`;
@@ -180,7 +181,7 @@ export const Preview = (props) => {
         container.style.transformOrigin = "bottom";
         container.style.transform = `scaleY(${scaleReverse}%)`;
       }
-    }
+    // }
   }, [scrollPos]);
 
   return (
@@ -218,19 +219,19 @@ export const Preview = (props) => {
           </div>
           {(showSubtitle || !largeScreen) && (
             <div className={classes.subtitle}>
-              <Typography style={{ fontFamily: "Square721", fontSize: "16px" }}>
+              <Typography style={{ fontFamily: "Square721", fontSize: largeScreen ? '1rem' : '.8rem' }}>
                 {client}
               </Typography>
-              {largeScreen && (<Typography style={{ fontFamily: "Square721", fontSize: "16px" }}>
+              {largeScreen && (<Typography style={{ fontFamily: "Square721", fontSize: "1rem" }}>
                 {projectName}
               </Typography>)}
-              <Typography style={{ fontFamily: "Square721", fontSize: "16px" }}>
+              <Typography style={{ fontFamily: "Square721", fontSize: largeScreen ? '1rem' : '.8rem' }}>
                 {role}
               </Typography>
               {/* <Typography style={{ fontFamily: "Square721", fontSize: "16px" }}>
                 {director}
               </Typography> */}
-              <Typography style={{ fontFamily: "Square721", fontSize: "16px" }}>
+              <Typography style={{ fontFamily: "Square721", fontSize: largeScreen ? '1rem' : '.8rem' }}>
                 {code}
               </Typography>
             </div>
